@@ -10,8 +10,8 @@ const route1Cb = (req, res) => {
 }
 
 const route2Cb = async (req, res) => {
-    const res23 = await getRequestBody(req);
-    console.log(res23);
+    let res23 = await getRequestBody(req);
+    res23 = res23 ? res23 : { info: 'em payload pampaledu... '}
     res.write(JSON.stringify(res23));
     res.end();
 }
@@ -25,6 +25,12 @@ const route3Cb = (req, res) => {
         res.end();
     })    
 }
+
+const dummyCb = (req, res) => {
+    console.log('path requested ===>', req.url);
+    res.write(`${req.url} resource not found`);
+    res.end();
+}
 /*************************************************************************** */
 
 
@@ -35,10 +41,18 @@ const route3Cb = (req, res) => {
 
 /******************************* UTILITY Functions ***************************** */
 const reqCbFn = async (req, res) => {
+    console.log('reqCbFn ', req.url);
     var cbFn = findCbFromReqUrl(req.url);
     return await cbFn(req, res);
 }
-const findCbFromReqUrl = (url) => (routes.find(route => route.path == url)).cbFn
+const findCbFromReqUrl = (url) => {
+    const blah1 = (routes.find(route => route.path == url));
+    if(blah1 && blah1.cbFn) {
+        return blah1.cbFn;
+    } else {
+        return dummyCb;
+    }    
+}
 
 function getRequestBody(reqObj) {
     return new Promise((resolve, reject) => {
@@ -53,10 +67,10 @@ function getRequestBody(reqObj) {
 }
 
 const routes = [
-    { path: "path23", method: "method23", cbFn: {} },
     { path: "/route1", method: "GET", cbFn: route1Cb },
     { path: "/route2", method: "PUT", cbFn: route2Cb },
     { path: "/route3", method: "PUT", cbFn: route3Cb },
+    { path: "/", method:"GET", cbFn: dummyCb}
 ];
 /*************************************************************************** */
 
